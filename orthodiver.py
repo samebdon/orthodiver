@@ -524,13 +524,13 @@ if __name__ == "__main__":
                 level=logging.DEBUG,
                 format='%(asctime)s [%(levelname)-6s] %(message)s',
                 datefmt='%m/%d/%Y %H:%M:%S',
-                filename="%s.ptsd.log" % args['--outprefix'],
+                filename="%s.orthodiver.log" % args['--outprefix'],
                 filemode='w')
         else:
             logging.basicConfig(
                 level=logging.INFO,
                 format='%(message)s',
-                filename="%s.ptsd.log" % args['--outprefix'],
+                filename="%s.orthodiver.log" % args['--outprefix'],
                 filemode='w')
         console = logging.StreamHandler() # define a Handler which writes INFO messages or higher to the sys.stderr
         console.setLevel(logging.INFO)
