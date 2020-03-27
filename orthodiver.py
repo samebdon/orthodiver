@@ -3,7 +3,7 @@
 
 """
 Usage:
-        ptsd.py -d <DIR> -A <STR> -B <STRL> -o <STR> [-v --debug -h -l <INT>]
+        orthodiver.py -d <DIR> -A <STR> -B <STRL> -o <STR> [-v --debug -h -l <INT>]
 
 
 Options:
@@ -23,7 +23,7 @@ Requirements:
     - '--taxon_A' / '--taxon_B' must be 'SPECIES.SAMPLE's
 
 Example command:
-    ./ptsd.py -d . -A gonepteryx_cleopatra.GC_12 -B gonepteryx_rhamni.GR_112 -o test
+    ./orthodiver.py -d . -A gonepteryx_cleopatra.GC_12 -B gonepteryx_rhamni.GR_112 -o test
     
 """
 
@@ -515,7 +515,7 @@ if __name__ == "__main__":
     __version__ = 0.3
     args = docopt(__doc__)
     if args['--version']:
-        sys.exit("[V] ptsd.py v%s" % __version__)
+        sys.exit("[V] orthodiver.py v%s" % __version__)
     try:
         start_time = timer()
         # logging
