@@ -3,7 +3,7 @@
 
 """
 Usage:
-        orthodiver.py -d <DIR> -A <STR> -B <STRL> -o <STR> [-v --debug -h -l <INT>]
+        orthodiver.py -d <DIR> -A <STR> -B <STRL> -o <STR> [-v --debug -h]
 
 
 Options:
@@ -14,7 +14,6 @@ Options:
         -B, --taxon_B <STR>                     Taxon B
         -o, --outprefix <STRING>                Outprefix to use for output
         --debug                                 Print debugging messages to log file
-        -l, --block <INT>                       Fixed block length of fourfold degenerate sites
         
 Requirements:
     - FASTA alignment file names must end in *.fasta, *.fas, or *.fa
@@ -206,8 +205,6 @@ def get_codons_and_sites(aligned_codons):
     logging.debug("[+] %s A = [%s] vs B = [%s]" % ("Variation  :", "|".join([variation_list[0], variation_list[1]]), "|".join([variation_list[2], variation_list[3]]),))
     logging.debug("[+] -> codon_type = %r" % codon_type)
     logging.debug("[+] -> sites = %r" % dict(sites))
-    #print(site)
-    #print(sites)
     return codon_type, sites
 
 def get_codons_header(locus=False):
@@ -269,7 +266,6 @@ class AlnObj(object):
     Contains information from one aligned locus
     - 4 FASTA sequences
     '''
-
     def __init__(self, locus_id):
         self.locus_id = locus_id # OG
         self.lengths = []
@@ -277,7 +273,6 @@ class AlnObj(object):
         self.codon_type_counter = collections.Counter()
         self.sites_counter = collections.Counter()
         self.pi_metrics = {}
-        self.block = int(0)
 
     def get_pi_line(self, degeneracy):
         return "\t".join([
@@ -303,9 +298,8 @@ class AlnObj(object):
     def get_codon_line(self):
         estimated_codons = int(self.length())
         observed_codons = sum(self.codon_type_counter.values())
-        #SAM EDIT
-        #if not estimated_codons == observed_codons * 3:
-            #sys.exit("estimated_codons [%s] != observed_codons [%s]" % (estimated_codons, observed_codons))
+        if not estimated_codons == observed_codons * 3:
+            sys.exit("estimated_codons [%s] != observed_codons [%s]" % (estimated_codons, observed_codons))
         return "\t".join([
             self.locus_id,
             str(estimated_codons), 
@@ -336,8 +330,6 @@ class AlnObj(object):
         return self.lengths[0] # simple, since sanity check performed earlier
     
     def compute_locus_pi(self):
-        #SAM EDIT
-        self.block = int(args['--block'])
         codon_list_by_label = {}
         logging.debug("[#] Locus : %s" % self.locus_id)
         for label, codon_list in self.yield_label_codon_list():
@@ -351,11 +343,6 @@ class AlnObj(object):
             codon_type, sites = get_codons_and_sites(aligned_codons)
             self.codon_type_counter[codon_type] += 1
             self.sites_counter += sites
-            #SAM EDIT
-            if self.block > 0:
-                if self.sites_counter['4_invariant']+self.sites_counter['4_fixed']+self.sites_counter['4_hetB']+self.sites_counter['4_hetA']+self.sites_counter['4_hetAB'] >= self.block:
-                    break
-        
         self.pi_metrics = compute_pi(self.sites_counter)
 
 class DataObj(object):
@@ -363,11 +350,6 @@ class DataObj(object):
         # input parameters
         self.fasta_dir = args['--fasta_dir']
         self.outprefix = args['--outprefix']
-
-        #SAM EDIT
-        self.block = int(args['--block'])
-        print('dataobj')
-        print(self.block)
         
         self.label_by_taxon = {
             args['--taxon_A']: 'A',
@@ -391,9 +373,8 @@ class DataObj(object):
     def get_codon_summary(self):
         length = sum([alnObj.length() for alnObj in self.alnObjs])
         observed_codons = sum(self.codon_type_counter.values())
-        #SAM EDIT
-        #if not length == observed_codons * 3:
-            #sys.exit("data set length [%s] != observed_codons * 3 [%s]" % (length, observed_codons))
+        if not length == observed_codons * 3:
+            sys.exit("data set length [%s] != observed_codons * 3 [%s]" % (length, observed_codons))
         return "\t".join([
             self.dataset_label,
             str(length), 
@@ -457,10 +438,6 @@ class DataObj(object):
         for alnObj in tqdm(self.alnObjs, total=len(self.alnObjs), desc="[%] ", ncols=80):
             alnObj.compute_locus_pi()
             self.sites_counter += alnObj.sites_counter
-            #SAM EDIT
-            if self.block > 0:
-                if self.sites_counter['4_invariant']+self.sites_counter['4_fixed']+self.sites_counter['4_hetB']+self.sites_counter['4_hetA']+self.sites_counter['4_hetAB'] < self.block:
-                    break
             self.codon_type_counter += alnObj.codon_type_counter
         self.pi_metrics = compute_pi(self.sites_counter)
 
